@@ -66,17 +66,3 @@ It is forbidden to change deleted documents.
 > nonrecoverable: Boolean = true
 
 It is forbidden to recover deleted documents.
-
-## Versions
-
-### 0.0.5
-* Fix autoValue
-
-### 0.0.4
-* Fix Schema
-
-### 0.0.3
-* server and client
-
-### 0.0.2
-* `ivansglazunov:refs@0.1.0`
