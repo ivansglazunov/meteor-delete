@@ -6,7 +6,8 @@ Mongo.Collection.prototype.attachDelete = function(config) {
 		method: true,
 		helper: true,
 		schema: true,
-		field: '_deleted'
+		field: '_deleted',
+		hidden: true
 	});
 	var collection = this;
 	if (config.schema) {
@@ -89,5 +90,16 @@ Mongo.Collection.prototype.attachDelete = function(config) {
 					throw new Meteor.Error('Deleted document is nonrecoverable');
 			}
 		});
+	}
+	if (config.hidden) {
+		if (Meteor.isServer) {
+			var before = function (userId, selector, options) {
+				if (!('_deleted' in selector)) {
+					selector['_deleted'] = { $exists: false };
+				}
+			};
+			collection.before.find(before);
+			collection.before.findOne(before);
+		}
 	}
 };

@@ -37,6 +37,11 @@ It attaches delete schema and helpers to the collection.
 
 Everything can be disabled
 
+#### hidden
+> hidden: Boolean = true
+
+Adds to any find query: `{ _deleted: { $exist: false } }` if _deleted field is not defined in query.
+
 #### field
 > field: String = '_deleted'
 
@@ -73,6 +78,9 @@ It is forbidden to change deleted documents.
 It is forbidden to recover deleted documents.
 
 ## Versions
+
+### 0.0.3
+* Auto hidden deleted documents from results
 
 ### 0.0.2
 * Custom field name
