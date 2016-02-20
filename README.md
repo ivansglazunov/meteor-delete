@@ -37,6 +37,11 @@ It attaches delete schema and helpers to the collection.
 
 Everything can be disabled
 
+#### field
+> field: String = '_deleted'
+
+Custom field name.
+
 #### schema
 > schema: Boolean = true
 
@@ -66,3 +71,8 @@ It is forbidden to change deleted documents.
 > nonrecoverable: Boolean = true
 
 It is forbidden to recover deleted documents.
+
+## Versions
+
+### 0.0.2
+* Custom field name

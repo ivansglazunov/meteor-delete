@@ -1,6 +1,6 @@
 Package.describe({
   name: 'ivansglazunov:delete',
-  version: '0.0.1',
+  version: '0.0.2',
   summary: 'Marking a document as a deleted someone.',
   git: 'https://github.com/ivansglazunov/meteor-delete.git',
   documentation: 'README.md'
