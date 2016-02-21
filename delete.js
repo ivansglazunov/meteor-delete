@@ -3,6 +3,8 @@ if (Meteor.isServer) {
 		'ivansglazunov:delete/undelete': function(ref) {
 			var collection = Mongo.Collection.get(ref.collection);
 			var config = collections[ref.collection];
+			var document = collection.direct.findOne(ref.id);
+			collection.validateRestrictions('undelete', this.userId, document);
 			var $set = {};
 			$set[config.field] = false;
 			if (config.history) {
@@ -20,6 +22,8 @@ if (Meteor.isServer) {
 		'ivansglazunov:delete/delete': function(ref) {
 			var collection = Mongo.Collection.get(ref.collection);
 			var config = collections[ref.collection];
+			var document = collection.direct.findOne(ref.id);
+			collection.validateRestrictions('delete', this.userId, document);
 			var $set = {};
 			$set[config.field] = true;
 			if (config.history) {
@@ -57,6 +61,9 @@ Mongo.Collection.prototype.attachDelete = function(config) {
 	collections[this._name] = config;
 	
 	var collection = this;
+	
+	collection.attachRestriction('delete');
+	collection.attachRestriction('undelete');
 	
 	if (config.schema) {
 		var schema = {};

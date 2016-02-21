@@ -75,6 +75,10 @@ It is forbidden to recover deleted documents.
 
 ## Versions
 
+### 0.2.1
+* Support [ivansglazunov:restrict](https://github.com/ivansglazunov/meteor-restrict)
+* Restrictions `delete` and `undelete`.
+
 ### 0.2.0
 * New logic based on Meteor.methods
 * Manually change the field is forbidden!
