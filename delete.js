@@ -1,60 +1,28 @@
 Mongo.Collection.prototype.attachDelete = function(config) {
 	var config = lodash.defaults(config, {
-		noninsertable: true,
-		nonchangable: true,
-		nonrecoverable: true,
+		insert: false,
+		change: false,
+		undelete: false,
 		method: true,
 		helper: true,
 		schema: true,
 		field: '_deleted',
-		hidden: true
+		hidden: true,
+		history: true
 	});
 	var collection = this;
 	if (config.schema) {
 		var schema = {};
 		schema[config.field] = {
-			type: new SimpleSchema({
-				user: {
-					type: Refs.Schema,
-					optional: true,
-					autoValue: function() {
-						if (this.isUpdate) {
-							if (this.userId) return Meteor.users.findOne(this.userId).Ref();
-						}
-					},
-					custom: function() {
-						if (this.isUpdate) {
-							if (this.userId) return Meteor.users.findOne(this.userId).Ref();
-						}
-					}
-				},
-				date: {
-					type: Date,
-					optional: true,
-					autoValue: function() {
-						if (this.isUpdate) {
-							if (!(config.field in collection.findOne(this.docId))) {
-								return new Date();
-							}
-						}
-					}
-				}
-			}),
-			optional: true,
-			custom: function() {
-				if (this.isInsert && this.isSet) return 'notAllowed';
-				else if (this.isUpdate) {
-					var doc = collection.findOne(this.docId);
-					if (config.field in doc) return 'notAllowed';
-				}
-			}
+			type: Boolean,
+			defaultValue: false
 		};
 		collection.attachSchema(new SimpleSchema(schema));
 	}
 	if (config.method) {
 		collection.delete = function(_id) {
 			var $set = {};
-			$set[config.field+'.date'] = new Date();
+			$set[config.field] = true;
 			collection.update(_id, { $set:$set });
 		};
 	}
@@ -62,44 +30,60 @@ Mongo.Collection.prototype.attachDelete = function(config) {
 		collection.helpers({
 			delete: function() {
 				var $set = {};
-				$set[config.field+'.date'] = new Date();
+				$set[config.field] = true;
 				collection.update(this._id, { $set:$set });
 			}
 		});
 	}
-	if (config.noninsertable) {
+	if (!config.insert) {
 		collection.deny({
 			insert: function(userId, doc) {
-				if (config.field in doc)
-					throw new Meteor.Error('Deleted document is noninsertable');
+				if (doc[config.field])
+					throw new Meteor.Error('Deleted document is insert');
 			}
 		});
 	}
-	if (config.nonchangable) {
+	if (!config.change) {
 		collection.deny({
 			update: function(userId, doc, fields, modifier) {
 				if (config.field in doc && fields.length > 1 && fields[0] != config.field)
-					throw new Meteor.Error('Deleted document is nonchangable');
+					throw new Meteor.Error('Deleted document is change');
 			}
 		});
 	}
-	if (config.nonrecoverable) {
+	if (!config.undelete) {
 		collection.deny({
 			update: function(userId, doc, fields, modifier) {
 				if (config.field in doc && lodash.includes(fields, config.field))
-					throw new Meteor.Error('Deleted document is nonrecoverable');
+					throw new Meteor.Error('Deleted document is undeletable');
 			}
 		});
 	}
 	if (config.hidden) {
-		if (Meteor.isServer) {
-			var before = function (userId, selector, options) {
-				if (!('_deleted' in selector)) {
-					selector['_deleted'] = { $exists: false };
-				}
-			};
-			collection.before.find(before);
-			collection.before.findOne(before);
-		}
+		var before = function (userId, selector, options) {
+			if (typeof(selector) == 'object') {
+				selector[config.field] = { $not: { $eq: true } };
+			}
+		};
+		collection.before.find(before);
+		collection.before.findOne(before);
+	}
+	if (config.history && Meteor.isServer) {
+		collection.after.update(function(userId, doc) {
+		    var doc = collection._transform(doc);
+			if (!this.previous.deleted && doc.deleted) {
+				History.insert({
+			        ref: doc.Ref(),
+			        type: 'delete',
+			        user: userId?Meteor.users.findOne(userId).Ref():undefined
+				});
+			} else if (this.previous.deleted && !doc.deleted) {
+				History.insert({
+			        ref: doc.Ref(),
+			        type: 'undelete',
+			        user: userId?Meteor.users.findOne(userId).Ref():undefined
+				});
+			}
+		});
 	}
 };
