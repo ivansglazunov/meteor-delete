@@ -58,25 +58,15 @@ Custom field name.
 
 Allow to attach SimpleSchema of `_deleted` field.
 
-#### method
-> helpers: Boolean = true
+#### collectionHelpers
+> collectionHelpers: Boolean = true
 
-Allow `Collection.delete` helper.
+Add `Collection.delete` and `Collection.undelete` functions.
 
-#### helper
-> helper: Boolean = true
+#### documentHelpers
+> documentHelpers: Boolean = true
 
-Allow `document.delete` helper.
-
-#### insert
-> insert: Boolean = false
-
-It is forbidden to insert deleted documents.
-
-#### change
-> change: Boolean = false
-
-It is forbidden to change deleted documents.
+Add `document.delete` and `document.undelete` helper.
 
 #### undelete
 > undelete: Boolean = true
@@ -84,6 +74,10 @@ It is forbidden to change deleted documents.
 It is forbidden to recover deleted documents.
 
 ## Versions
+
+### 0.2.0
+* New logic based on Meteor.methods
+* Manually change the field is forbidden!
 
 ### 0.1.0
 * Move user and data info from document into history
